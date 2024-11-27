@@ -1,10 +1,10 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+import openai
 import os
 import datetime
 import random
 from dotenv import load_dotenv
-from openai import OpenAI
 
 # Load environment variables
 load_dotenv()
@@ -13,13 +13,11 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
-# Initialize OpenAI client
-client = OpenAI(
-    api_key=os.getenv("OPENAI_API_KEY"),
-    organization=os.getenv("OPENAI_ORGANIZATION")
-)
+# Initialize OpenAI settings
+openai.api_key = os.getenv("OPENAI_API_KEY")
+openai.organization = os.getenv("OPENAI_ORGANIZATION")
 
-if not client.api_key:
+if not openai.api_key:
     raise ValueError("⚠️ OPENAI_API_KEY is not set. Please set it in your environment.")
 
 def generate_dynamic_personality():
@@ -42,11 +40,9 @@ def greet_user():
 
 @app.route("/debug-config", methods=["GET"])
 def debug_config():
-    api_key = os.getenv("OPENAI_API_KEY")
-    org_id = os.getenv("OPENAI_ORGANIZATION")
     return jsonify({
-        "api_key_starts_with": api_key[:7] if api_key else None,
-        "org_id": org_id
+        "api_key_starts_with": openai.api_key[:7] if openai.api_key else None,
+        "org_id": openai.organization
     })
 
 @app.route("/ask_stemmy", methods=["POST"])
@@ -61,7 +57,7 @@ def ask_stemmy():
     
     try:
         dynamic_personality = generate_dynamic_personality()
-        response = client.chat.completions.create(
+        response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": dynamic_personality},
@@ -71,7 +67,7 @@ def ask_stemmy():
             temperature=0.7
         )
         
-        answer = response.choices[0].message.content
+        answer = response.choices[0]['message']['content']
         print(f"Stemmy response: {answer}")
         
         return jsonify({"response": answer})
