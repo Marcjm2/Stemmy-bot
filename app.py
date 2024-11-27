@@ -40,6 +40,15 @@ def greet_user():
     else:
         return "Good evening! 🌙 Ready to chat about your leafy friends!"
 
+@app.route("/debug-config", methods=["GET"])
+def debug_config():
+    api_key = os.getenv("OPENAI_API_KEY")
+    org_id = os.getenv("OPENAI_ORGANIZATION")
+    return jsonify({
+        "api_key_starts_with": api_key[:7] if api_key else None,
+        "org_id": org_id
+    })
+
 @app.route("/ask_stemmy", methods=["POST"])
 def ask_stemmy():
     print("Request received at /ask_stemmy")
