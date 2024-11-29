@@ -7,6 +7,7 @@ import random
 from dotenv import load_dotenv
 from functools import wraps
 import time
+import re
 
 # Load environment variables
 load_dotenv()
@@ -41,44 +42,46 @@ def rate_limit(limit_seconds=30):
         return wrapped
     return decorator
 
+def make_links_clickable(text):
+    url_pattern = r'(https?://\S+)\
+    parts = re.split(url_pattern, text)
+    
+    for i in range(len(parts)):
+        if i % 2 == 1:  # URL parts
+            parts[i] = f"<a href=\\"{parts[i]}\\" target=\\"_blank\\">{parts[i]}</a>"
+    
+    return "".join(parts)
+
 def format_response(text):
-    # Split into paragraphs
     paragraphs = text.split("\n")
     formatted_paragraphs = []
     
     for para in paragraphs:
-        # Add spacing for lists
-        if para.strip().startswith(("1.", "2.", "3.", "4.", "•", "-")):
+        para = para.strip()
+        if not para:
+            continue
+            
+        if re.match(r"^\d+\.", para):
             para = "\n" + para
-        # Add line break after colons that aren't part of URLs
-        if ":" in para and "http" not in para:
-            parts = para.split(":")
-            para = parts[0] + ":\n" + ":".join(parts[1:])
-        formatted_paragraphs.append(para.strip())
+        elif para.startswith(("•", "-")):
+            para = "\n• " + para[1:].strip()
+            
+        if ": " in para and "http" not in para:
+            parts = para.split(": ")
+            para = f"{parts[0]}: \n{": ".join(parts[1:])}"
+            
+        formatted_paragraphs.append(para)
     
-    # Join with proper spacing
-    return "\n\n".join(p for p in formatted_paragraphs if p)
+    formatted_text = "\n\n".join(formatted_paragraphs)
+    return make_links_clickable(formatted_text)
 
-def is_plant_related(question):
-    plant_keywords = [
-        "plant", "garden", "soil", "water", "leaf", "grow", "light",
-        "fertilizer", "pot", "prune", "stem", "root", "flower", "seed",
-        "indoor plant", "outdoor plant", "houseplant", "care", "maintenance",
-        "propagate", "cutting", "pest", "disease", "sunlight", "humidity",
-        "buy", "purchase", "price", "cost", "shipping", "delivery"
+def get_error_response():
+    error_messages = [
+        f"I'm not quite sure about that, but I'd love to help! Send us a DM on Instagram @stemmaplants or visit our contact page at <a href='https://www.stemmaplants.com/contact-us' target='_blank'>stemmaplants.com/contact-us</a> for personalized assistance! 🌿",
+        f"Let's connect directly! Reach out to us on Instagram @stemmaplants or through our contact page at <a href='https://www.stemmaplants.com/contact-us' target='_blank'>stemmaplants.com/contact-us</a> for better assistance! 🪴",
+        f"For the best help with that, drop us a message on Instagram @stemmaplants or visit <a href='https://www.stemmaplants.com/contact-us' target='_blank'>stemmaplants.com/contact-us</a>! We're here to help! 🌱"
     ]
-    
-    question_lower = question.lower()
-    return any(keyword in question_lower for keyword in plant_keywords)
-
-def get_random_social_prompt():
-    prompts = [
-        "\n\nP.S. Follow us on Instagram @stemmaplants for plant care tips and new arrivals! 🌿",
-        "\n\nCheck out our Facebook page for updates and plant care tips: facebook.com/people/Stemma-Plant-Co/61569391287243/ 🪴",
-        "\n\nStay connected! Find us on Instagram @stemmaplants and Facebook for daily plant inspiration! 🌱",
-        "\n\nWant to see more plants? Follow our journey on Instagram @stemmaplants! 🪴"
-    ]
-    return random.choice(prompts)
+    return random.choice(error_messages)
 
 @app.route("/ask_stemmy", methods=["POST"])
 @rate_limit(30)
@@ -88,43 +91,43 @@ def ask_stemmy():
     if not user_input:
         return jsonify({"error": "Please ask a question! 🌱"}), 400
     
-    if not is_plant_related(user_input):
-        return jsonify({
-            "response": "I'm a plant specialist, so I can only help with questions about plants, gardening, and plant care! 🌱 Feel free to ask me anything about those topics!"
-        })
-    
     try:
-        system_prompt = """You are Stemmy 🌱, the specialist chatbot for Stemma Plant Co. You help customers with plant care and shopping at our store. Important details:
+        system_prompt = """You are Stemmy 🌱, the specialist chatbot for Stemma Plant Co. Core information:
 
-1. Our Website:
-- All our available plants are at https://www.stemmaplants.com/plants
-- Direct customers here for current inventory
-- Mention they can browse our selection online
+1. Inventory Details:
+- Our live inventory is always available at https://www.stemmaplants.com/plants
+- We regularly rotate our plant selection for variety
+- Emphasize checking the website for current availability
+- All purchases can be made directly through our website
 
-2. Response Guidelines:
-- Format lists with clear numbering and line breaks
+2. Response Style:
+- Use clear formatting with line breaks between topics
+- Include relevant plant emojis (🌿, 🪴, 🌱)
 - Keep paragraphs short and easy to read
-- Use plant-specific emojis
-- Include care details when discussing plants
+- Format lists with numbers and proper spacing
 - Maximum 150 words per response
 
-3. When answering questions:
-- Always mention our website for purchases
-- Suggest checking our current inventory online
-- Be enthusiastic about plants
-- Format plant names in a clear way
+3. Best Practices:
+- Link to our website when discussing available plants
+- Mention our Instagram (@stemmaplants) for updates
+- Direct specific inquiries to our contact page
+- Be enthusiastic and knowledgeable about plants
 - Include basic care tips when relevant
 
-Example format for recommendations:
-"Here are some great options:
+4. Social Media:
+- Instagram: @stemmaplants
+- Facebook: https://www.facebook.com/people/Stemma-Plant-Co/61569391287243/
+- Contact Page: https://www.stemmaplants.com/contact-us
 
-1. Snake Plant 🪴: Easy care, low light
-2. Pothos 🌿: Perfect for beginners
-3. ZZ Plant 🌱: Very low maintenance
+Format example:
+"Great question! Here's what you need to know:
 
-You can find all these and more at stemmaplants.com/plants!"
+1. Plant Care: [details]
+2. Availability: Check our current selection at stemmaplants.com/plants
+3. More Info: Follow us @stemmaplants for updates!
 
-If asked about buying: Always direct to https://www.stemmaplants.com/plants for current inventory."""
+For specific questions, visit our contact page or DM us on Instagram!"
+"""
 
         response = openai.ChatCompletion.create(
             model="gpt-4",
@@ -137,17 +140,13 @@ If asked about buying: Always direct to https://www.stemmaplants.com/plants for 
         )
         
         answer = response.choices[0]["message"]["content"]
-        
-        # Format response and randomly add social media prompt
         formatted_answer = format_response(answer)
-        if random.random() < 0.3:  # 30% chance to add social media prompt
-            formatted_answer += get_random_social_prompt()
         
         return jsonify({"response": formatted_answer})
-    
+        
     except Exception as e:
         print(f"Error: {e}")
-        return jsonify({"error": "🌱 Oops! Something went wrong. Please try again!"}), 500
+        return jsonify({"response": get_error_response()}), 200
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 10000))
