@@ -41,6 +41,24 @@ def rate_limit(limit_seconds=30):
         return wrapped
     return decorator
 
+def format_response(text):
+    # Split into paragraphs
+    paragraphs = text.split("\n")
+    formatted_paragraphs = []
+    
+    for para in paragraphs:
+        # Add spacing for lists
+        if para.strip().startswith(("1.", "2.", "3.", "4.", "•", "-")):
+            para = "\n" + para
+        # Add line break after colons that aren't part of URLs
+        if ":" in para and "http" not in para:
+            parts = para.split(":")
+            para = parts[0] + ":\n" + ":".join(parts[1:])
+        formatted_paragraphs.append(para.strip())
+    
+    # Join with proper spacing
+    return "\n\n".join(p for p in formatted_paragraphs if p)
+
 def is_plant_related(question):
     plant_keywords = [
         "plant", "garden", "soil", "water", "leaf", "grow", "light",
@@ -52,6 +70,15 @@ def is_plant_related(question):
     
     question_lower = question.lower()
     return any(keyword in question_lower for keyword in plant_keywords)
+
+def get_random_social_prompt():
+    prompts = [
+        "\n\nP.S. Follow us on Instagram @stemmaplants for plant care tips and new arrivals! 🌿",
+        "\n\nCheck out our Facebook page for updates and plant care tips: facebook.com/people/Stemma-Plant-Co/61569391287243/ 🪴",
+        "\n\nStay connected! Find us on Instagram @stemmaplants and Facebook for daily plant inspiration! 🌱",
+        "\n\nWant to see more plants? Follow our journey on Instagram @stemmaplants! 🪴"
+    ]
+    return random.choice(prompts)
 
 @app.route("/ask_stemmy", methods=["POST"])
 @rate_limit(30)
@@ -67,24 +94,38 @@ def ask_stemmy():
         })
     
     try:
-        system_prompt = """You are Stemmy 🌱, the specialist chatbot for Stemma Plant Co. You ONLY help customers with:
-        - Plant care and maintenance advice
-        - Plant selection recommendations
-        - General gardening guidance
-        
-        Key guidelines:
-        - ONLY answer questions about plants and plant care
-        - If someone asks about buying plants, direct them to browse our selection at stemmaplants.com
-        - For specific plants, you can mention they're available on our website and guide them to check the site
-        - Keep responses friendly and organized with bullet points where appropriate
-        - Add relevant plant emojis for engagement
-        - Keep responses under 150 words
-        - Format lists and key points with line breaks
-        - If asked about non-plant topics, politely redirect to plant-related discussions
-        
-        Example redirect: "As a plant specialist, I focus on helping with plant-related questions! 🌱 Is there anything about plants or gardening you'd like to know?"
-        """
-        
+        system_prompt = """You are Stemmy 🌱, the specialist chatbot for Stemma Plant Co. You help customers with plant care and shopping at our store. Important details:
+
+1. Our Website:
+- All our available plants are at https://www.stemmaplants.com/plants
+- Direct customers here for current inventory
+- Mention they can browse our selection online
+
+2. Response Guidelines:
+- Format lists with clear numbering and line breaks
+- Keep paragraphs short and easy to read
+- Use plant-specific emojis
+- Include care details when discussing plants
+- Maximum 150 words per response
+
+3. When answering questions:
+- Always mention our website for purchases
+- Suggest checking our current inventory online
+- Be enthusiastic about plants
+- Format plant names in a clear way
+- Include basic care tips when relevant
+
+Example format for recommendations:
+"Here are some great options:
+
+1. Snake Plant 🪴: Easy care, low light
+2. Pothos 🌿: Perfect for beginners
+3. ZZ Plant 🌱: Very low maintenance
+
+You can find all these and more at stemmaplants.com/plants!"
+
+If asked about buying: Always direct to https://www.stemmaplants.com/plants for current inventory."""
+
         response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[
@@ -97,8 +138,10 @@ def ask_stemmy():
         
         answer = response.choices[0]["message"]["content"]
         
-        # Format response with proper spacing
-        formatted_answer = answer.replace("•", "\n•").replace(":", ":\n")
+        # Format response and randomly add social media prompt
+        formatted_answer = format_response(answer)
+        if random.random() < 0.3:  # 30% chance to add social media prompt
+            formatted_answer += get_random_social_prompt()
         
         return jsonify({"response": formatted_answer})
     
