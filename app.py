@@ -20,7 +20,7 @@ CORS(app)
 openai.api_key = os.getenv("OPENAI_API_KEY")
 openai.organization = os.getenv("OPENAI_ORGANIZATION")
 
-def rate_limit(limit_seconds=30):
+def rate_limit(limit_seconds=5):
     request_history = {}
     
     def decorator(f):
@@ -42,16 +42,6 @@ def rate_limit(limit_seconds=30):
         return wrapped
     return decorator
 
-def make_links_clickable(text):
-    url_pattern = r'(https?://\S+)\
-    parts = re.split(url_pattern, text)
-    
-    for i in range(len(parts)):
-        if i % 2 == 1:  # URL parts
-            parts[i] = f"<a href=\\"{parts[i]}\\" target=\\"_blank\\">{parts[i]}</a>"
-    
-    return "".join(parts)
-
 def format_response(text):
     paragraphs = text.split("\n")
     formatted_paragraphs = []
@@ -68,66 +58,91 @@ def format_response(text):
             
         if ": " in para and "http" not in para:
             parts = para.split(": ")
-            para = f"{parts[0]}: \n{": ".join(parts[1:])}"
+            para = f"{parts[0]}: \n{: .join(parts[1:])}"
             
         formatted_paragraphs.append(para)
     
-    formatted_text = "\n\n".join(formatted_paragraphs)
-    return make_links_clickable(formatted_text)
+    return "\n\n".join(formatted_paragraphs)
 
-def get_error_response():
-    error_messages = [
-        f"I'm not quite sure about that, but I'd love to help! Send us a DM on Instagram @stemmaplants or visit our contact page at <a href='https://www.stemmaplants.com/contact-us' target='_blank'>stemmaplants.com/contact-us</a> for personalized assistance! 🌿",
-        f"Let's connect directly! Reach out to us on Instagram @stemmaplants or through our contact page at <a href='https://www.stemmaplants.com/contact-us' target='_blank'>stemmaplants.com/contact-us</a> for better assistance! 🪴",
-        f"For the best help with that, drop us a message on Instagram @stemmaplants or visit <a href='https://www.stemmaplants.com/contact-us' target='_blank'>stemmaplants.com/contact-us</a>! We're here to help! 🌱"
+def is_beginner_plant_query(question):
+    beginner_keywords = [
+        "beginner", "first time", "easy", "low maintenance",
+        "starter", "simple", "newbie", "new to plants",
+        "starting out", "best for beginners"
     ]
-    return random.choice(error_messages)
+    question_lower = question.lower()
+    return any(keyword in question_lower for keyword in beginner_keywords)
+
+def is_plant_related(question):
+    plant_keywords = [
+        "plant", "garden", "soil", "water", "leaf", "grow", "light",
+        "fertilizer", "pot", "prune", "stem", "root", "flower", "seed",
+        "indoor plant", "outdoor plant", "houseplant", "care", "maintenance",
+        "propagate", "cutting", "pest", "disease", "sunlight", "humidity",
+        "buy", "purchase", "price", "cost", "shipping", "delivery"
+    ]
+    
+    question_lower = question.lower()
+    return any(keyword in question_lower for keyword in plant_keywords)
+
+def get_random_social_prompt():
+    prompts = [
+        "\n\nFollow us on Instagram <a href='https://www.instagram.com/stemmaplants' target='_blank'>@stemmaplants</a> for plant care tips and new arrivals! 🌿",
+        "\n\nCheck out our <a href='https://www.facebook.com/people/Stemma-Plant-Co/61569391287243/' target='_blank'>Facebook page</a> for updates and plant care tips! 🪴",
+        "\n\nStay connected! Find us on <a href='https://www.instagram.com/stemmaplants' target='_blank'>Instagram @stemmaplants</a> and <a href='https://www.facebook.com/people/Stemma-Plant-Co/61569391287243/' target='_blank'>Facebook</a> for daily plant inspiration! 🌱"
+    ]
+    return random.choice(prompts)
 
 @app.route("/ask_stemmy", methods=["POST"])
-@rate_limit(30)
+@rate_limit(5)
 def ask_stemmy():
     user_input = request.json.get("question", "").strip()
     
     if not user_input:
         return jsonify({"error": "Please ask a question! 🌱"}), 400
     
+    if not is_plant_related(user_input):
+        return jsonify({
+            "response": "I'm a plant specialist, so I can only help with questions about plants, gardening, and plant care! 🌱 Feel free to ask me anything about those topics!"
+        })
+    
     try:
+        is_beginner_query = is_beginner_plant_query(user_input)
+        
         system_prompt = """You are Stemmy 🌱, the specialist chatbot for Stemma Plant Co. Core information:
 
-1. Inventory Details:
-- Our live inventory is always available at https://www.stemmaplants.com/plants
-- We regularly rotate our plant selection for variety
-- Emphasize checking the website for current availability
-- All purchases can be made directly through our website
+1. Our Current Plant Selection:
+- Hoyas: Green, Compacta, Variegated varieties
+- Pothos: Marble Queen, Golden, Emerald varieties
+- Philodendrons: Brasil, Sun Red
+- Other: Boston Fern, Polka Dot Plant (Hypoestes), Peperomia Cupid, Scindapsus Silver Ann
 
-2. Response Style:
-- Use clear formatting with line breaks between topics
-- Include relevant plant emojis (🌿, 🪴, 🌱)
-- Keep paragraphs short and easy to read
-- Format lists with numbers and proper spacing
-- Maximum 150 words per response
+2. Plant Categories:
+- Hanging Plants: Pothos Marble Queen HB, Pothos Golden HB
+- Easy Care: Pothos varieties, Philodendron Brasil
+- Statement Plants: Hoya varieties, Boston Fern
+- Unique Finds: Scindapsus Silver Ann, Peperomia Cupid
 
-3. Best Practices:
-- Link to our website when discussing available plants
-- Mention our Instagram (@stemmaplants) for updates
-- Direct specific inquiries to our contact page
-- Be enthusiastic and knowledgeable about plants
-- Include basic care tips when relevant
+3. Response Style:
+- Keep responses concise and friendly
+- Use plant-relevant emojis
+- Format lists clearly
+- Include direct links to our website
+- Maximum 150 words
 
-4. Social Media:
-- Instagram: @stemmaplants
-- Facebook: https://www.facebook.com/people/Stemma-Plant-Co/61569391287243/
-- Contact Page: https://www.stemmaplants.com/contact-us
+4. Key Guidelines:
+- Only recommend plants from our current inventory
+- Direct customers to https://www.stemmaplants.com/plants to browse selection
+- Highlight our specialties: Hoyas, Pothos, and Philodendrons
+- For specific plant questions, give care tips and link to our shop
 
-Format example:
-"Great question! Here's what you need to know:
+Example beginner response:
+"For new plant parents, I'd recommend our Pothos varieties - they're beautiful and adaptable! We have stunning Marble Queen and Golden Pothos in hanging baskets, perfect for beginners. The Philodendron Brasil is also an excellent choice. Browse our selection at stemmaplants.com/plants 🪴"
 
-1. Plant Care: [details]
-2. Availability: Check our current selection at stemmaplants.com/plants
-3. More Info: Follow us @stemmaplants for updates!
+Example general response:
+"We have a lovely selection of indoor plants! Our Hoyas are particularly special, and we carry several varieties. Check out our current collection at stemmaplants.com/plants 🌿"
 
-For specific questions, visit our contact page or DM us on Instagram!"
-"""
+When discussing prices: Direct customers to the website for current pricing."""
 
         response = openai.ChatCompletion.create(
             model="gpt-4",
@@ -142,11 +157,16 @@ For specific questions, visit our contact page or DM us on Instagram!"
         answer = response.choices[0]["message"]["content"]
         formatted_answer = format_response(answer)
         
+        if random.random() < 0.3:
+            formatted_answer += get_random_social_prompt()
+        
         return jsonify({"response": formatted_answer})
         
     except Exception as e:
         print(f"Error: {e}")
-        return jsonify({"response": get_error_response()}), 200
+        return jsonify({
+            "response": "Having trouble connecting right now! Try reaching out on <a href='https://www.instagram.com/stemmaplants' target='_blank'>Instagram @stemmaplants</a> or visit our <a href='https://www.stemmaplants.com/contact-us' target='_blank'>contact page</a>! 🌿"
+        }), 200
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 10000))
