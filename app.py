@@ -5,83 +5,107 @@ import os
 import datetime
 import random
 from dotenv import load_dotenv
+from functools import wraps
+import time
 
 # Load environment variables
 load_dotenv()
 
-# Initialize the Flask app
+# Initialize Flask
 app = Flask(__name__)
 CORS(app)
 
-# Initialize OpenAI settings
+# OpenAI setup
 openai.api_key = os.getenv("OPENAI_API_KEY")
 openai.organization = os.getenv("OPENAI_ORGANIZATION")
 
-if not openai.api_key:
-    raise ValueError("⚠️ OPENAI_API_KEY is not set. Please set it in your environment.")
+def rate_limit(limit_seconds=30):
+    request_history = {}
+    
+    def decorator(f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            requester_id = request.remote_addr
+            current_time = time.time()
+            
+            if requester_id in request_history:
+                last_request_time = request_history[requester_id]
+                if current_time - last_request_time < limit_seconds:
+                    return jsonify({
+                        "error": "Please wait a moment before asking another question! 🌱",
+                        "retry_after": int(limit_seconds - (current_time - last_request_time))
+                    }), 429
+            
+            request_history[requester_id] = current_time
+            return f(*args, **kwargs)
+        return wrapped
+    return decorator
 
-def generate_dynamic_personality():
-    personalities = [
-        "You are Stemmy 🌱, a cheerful plant enthusiast who loves helping people grow happy, healthy plants.",
-        "You are Stemmy 🌱, a witty and playful plant assistant who occasionally adds fun plant facts to your responses.",
-        "You are Stemmy 🌱, a calm and wise plant expert who explains things in a relaxing and reassuring way.",
-        "You are Stemmy 🌱, an energetic plant coach who motivates users to take great care of their plants."
+def is_plant_related(question):
+    plant_keywords = [
+        "plant", "garden", "soil", "water", "leaf", "grow", "light",
+        "fertilizer", "pot", "prune", "stem", "root", "flower", "seed",
+        "indoor plant", "outdoor plant", "houseplant", "care", "maintenance",
+        "propagate", "cutting", "pest", "disease", "sunlight", "humidity",
+        "buy", "purchase", "price", "cost", "shipping", "delivery"
     ]
-    return random.choice(personalities)
-
-def greet_user():
-    current_hour = datetime.datetime.now().hour
-    if current_hour < 12:
-        return "Good morning! ☀️ Let's talk about plants!"
-    elif current_hour < 18:
-        return "Good afternoon! 🌼 What plant questions can I help with?"
-    else:
-        return "Good evening! 🌙 Ready to chat about your leafy friends!"
-
-@app.route("/debug-config", methods=["GET"])
-def debug_config():
-    return jsonify({
-        "api_key_starts_with": openai.api_key[:7] if openai.api_key else None,
-        "org_id": openai.organization
-    })
+    
+    question_lower = question.lower()
+    return any(keyword in question_lower for keyword in plant_keywords)
 
 @app.route("/ask_stemmy", methods=["POST"])
+@rate_limit(30)
 def ask_stemmy():
-    print("Request received at /ask_stemmy")
-    user_input = request.json.get("question")
-    if not user_input:
-        print("No question provided.")
-        return jsonify({"error": "No question provided. Please include a 'question' key in the JSON payload."}), 400
+    user_input = request.json.get("question", "").strip()
     
-    print(f"User question: {user_input}")
+    if not user_input:
+        return jsonify({"error": "Please ask a question! 🌱"}), 400
+    
+    if not is_plant_related(user_input):
+        return jsonify({
+            "response": "I'm a plant specialist, so I can only help with questions about plants, gardening, and plant care! 🌱 Feel free to ask me anything about those topics!"
+        })
     
     try:
-        dynamic_personality = generate_dynamic_personality()
+        system_prompt = """You are Stemmy 🌱, the specialist chatbot for Stemma Plant Co. You ONLY help customers with:
+        - Plant care and maintenance advice
+        - Plant selection recommendations
+        - General gardening guidance
+        
+        Key guidelines:
+        - ONLY answer questions about plants and plant care
+        - If someone asks about buying plants, direct them to browse our selection at stemmaplants.com
+        - For specific plants, you can mention they're available on our website and guide them to check the site
+        - Keep responses friendly and organized with bullet points where appropriate
+        - Add relevant plant emojis for engagement
+        - Keep responses under 150 words
+        - Format lists and key points with line breaks
+        - If asked about non-plant topics, politely redirect to plant-related discussions
+        
+        Example redirect: "As a plant specialist, I focus on helping with plant-related questions! 🌱 Is there anything about plants or gardening you'd like to know?"
+        """
+        
         response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[
-                {"role": "system", "content": dynamic_personality},
+                {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_input}
             ],
-            max_tokens=200,
+            max_tokens=150,
             temperature=0.7
         )
         
-        answer = response.choices[0]['message']['content']
-        print(f"Stemmy response: {answer}")
+        answer = response.choices[0]["message"]["content"]
         
-        return jsonify({"response": answer})
+        # Format response with proper spacing
+        formatted_answer = answer.replace("•", "\n•").replace(":", ":\n")
+        
+        return jsonify({"response": formatted_answer})
     
     except Exception as e:
         print(f"Error: {e}")
-        return jsonify({"error": f"🌱 An unexpected error occurred: {str(e)}"}), 500
-
-@app.route("/test", methods=["GET"])
-def test():
-    return jsonify({"message": "Flask is working!"})
+        return jsonify({"error": "🌱 Oops! Something went wrong. Please try again!"}), 500
 
 if __name__ == "__main__":
-    print(greet_user())
-    print("Hi, I'm Stemmy 🌱! How can I help you today?")
     port = int(os.getenv("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
