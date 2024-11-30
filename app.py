@@ -20,6 +20,154 @@ CORS(app)
 openai.api_key = os.getenv("OPENAI_API_KEY")
 openai.organization = os.getenv("OPENAI_ORGANIZATION")
 
+# Add plant data
+plants = [
+    {
+        "name": "Hoya Green",
+        "price": 34.00,
+        "size": "6-inch pot",
+        "light": "Bright, indirect light",
+        "water": "Allow soil to dry between waterings",
+        "description": "A hardy and low-maintenance plant with waxy green leaves",
+        "care": "Water when the top inch of soil feels dry. Avoid overwatering",
+        "stock": "In stock"
+    },
+    {
+        "name": "Hoya Compacta",
+        "price": 34.00,
+        "size": "6-inch pot",
+        "light": "Bright, indirect light",
+        "water": "Let the soil dry out slightly between waterings",
+        "description": "Also known as Hindu Rope, this unique Hoya features twisted, curling leaves",
+        "care": "Keep in a warm, humid spot. Mist occasionally to maintain humidity",
+        "stock": "In stock"
+    },
+    {
+        "name": "Boston Fern HB",
+        "price": 39.00,
+        "size": "10-inch hanging basket (Plastic Hanger)",
+        "light": "Bright, indirect to medium light",
+        "water": "Keep soil consistently moist but not soggy",
+        "description": "A lush, classic fern perfect for adding greenery to any space",
+        "care": "Mist regularly to maintain humidity. Avoid direct sunlight",
+        "stock": "In stock"
+    },
+    {
+        "name": "Pothos Marble Queen HB",
+        "price": 36.00,
+        "size": "8-inch hanging basket",
+        "light": "Low to medium, indirect light",
+        "water": "Allow the top inch of soil to dry out between waterings",
+        "description": "A striking plant with creamy white and green variegated leaves",
+        "care": "Thrives in low-maintenance conditions. Wipe leaves to remove dust",
+        "stock": "In stock"
+    },
+    {
+        "name": "Hypoestes (Polka Dot Plant) 3 Plant Bundle",
+        "price": 24.00,
+        "size": "4-inch pot",
+        "light": "Bright, indirect light",
+        "water": "Keep soil evenly moist, but avoid waterlogging",
+        "description": "A cheerful bundle of Polka Dot Plants with speckled leaves in various colors",
+        "care": "Pinch off growth to encourage bushiness. Prefers humid environments",
+        "stock": "In stock"
+    },
+    {
+        "name": "Hoya Green Variegated",
+        "price": 34.00,
+        "size": "6-inch pot",
+        "light": "Bright, indirect light",
+        "water": "Let soil dry slightly between waterings",
+        "description": "A variegated version of the classic Hoya with creamy accents on its leaves",
+        "care": "Provide good drainage and avoid standing water. Mist for humidity",
+        "stock": "In stock"
+    },
+    {
+        "name": "Peperomia Cupid",
+        "price": 22.00,
+        "size": "6-inch pot",
+        "light": "Bright, indirect light",
+        "water": "Allow soil to dry out between waterings",
+        "description": "A compact plant with heart-shaped leaves edged in cream",
+        "care": "Avoid overwatering. Ideal for desktops or small spaces",
+        "stock": "In stock"
+    },
+    {
+        "name": "Philodendron Brasil",
+        "price": 22.00,
+        "size": "6-inch pot",
+        "light": "Medium to bright, indirect light",
+        "water": "Allow soil to dry partially between waterings",
+        "description": "A vibrant plant with striking yellow and green variegated leaves",
+        "care": "Easy to care for and great for beginners. Trim as needed",
+        "stock": "In stock"
+    },
+    {
+        "name": "Philodendron Sun Red",
+        "price": 25.00,
+        "size": "6-inch pot",
+        "light": "Bright, indirect light",
+        "water": "Water when the top inch of soil feels dry",
+        "description": "A unique philodendron with rich red tones and a pop of color",
+        "care": "Wipe leaves occasionally to keep them clean and glossy",
+        "stock": "In stock"
+    },
+    {
+        "name": "Pothos Emerald",
+        "price": 20.00,
+        "size": "6-inch pot",
+        "light": "Low to medium, indirect light",
+        "water": "Let the soil dry out slightly between waterings",
+        "description": "A hardy Pothos variety with deep green leaves",
+        "care": "Very low-maintenance. Perfect for beginners or low-light spaces",
+        "stock": "In stock"
+    },
+    {
+        "name": "Scindapsus Silver Ann",
+        "price": 29.00,
+        "size": "6-inch pot",
+        "light": "Bright, indirect light",
+        "water": "Allow the top inch of soil to dry between waterings",
+        "description": "A beautiful trailing plant with silvery, velvety leaves",
+        "care": "Provide good drainage and rotate periodically for even growth",
+        "stock": "In stock"
+    },
+    {
+        "name": "Pothos Golden HB",
+        "price": 36.00,
+        "size": "8-inch hanging basket",
+        "light": "Low to medium, indirect light",
+        "water": "Allow the top inch of soil to dry out between waterings",
+        "description": "A classic golden Pothos with striking yellow-green variegated leaves",
+        "care": "Thrives in a variety of conditions. Easy to propagate",
+        "stock": "In stock"
+    }
+]
+
+# Store information formatting
+STORE_INFO = """
+🚚 Local Delivery: Available in Myrtle Beach and surrounding areas! Pop in your zip code at checkout to check if you're in our delivery zone
+💚 Free delivery on orders over $75
+📦 National Shipping: $10 flat ground shipping (Free over $75)
+🎁 Looking for a gift? Grab a gift card at https://www.stemmaplants.com/plants/p/gift-card
+📸 Instagram: https://www.instagram.com/stemmaplants
+📞 Contact: https://www.stemmaplants.com/contact-us"""
+
+def get_plant_details(query):
+    """Get relevant plant information based on the query"""
+    query = query.lower()
+    relevant_info = []
+    
+    for plant in plants:
+        plant_info = f"{plant[\"name\"]}: ${plant[\"price\"]} - {plant[\"description\"]} ({plant[\"size\"]})"
+        if any(keyword in query for keyword in plant[\"name\"].lower().split()):
+            relevant_info.append(plant_info)
+            relevant_info.append(f"Care: {plant[\"care\"]}")
+            relevant_info.append(f"Light: {plant[\"light\"]}")
+            relevant_info.append(f"Water: {plant[\"water\"]}")
+    
+    return "\n".join(relevant_info) if relevant_info else ""
+
 def rate_limit(limit_seconds=5):
     request_history = {}
     
@@ -44,8 +192,8 @@ def rate_limit(limit_seconds=5):
 
 def clean_url(text):
     # Find URLs and ensure they don't have trailing punctuation
-    url_pattern = r'\b(https?://[^\s]+[^\s.,!?])'
-    cleaned_text = re.sub(url_pattern, r'\1', text)
+    url_pattern = r"\b(https?://[^\s]+[^\s.,!?])"
+    cleaned_text = re.sub(url_pattern, r"\1", text)
     return cleaned_text
 
 def format_response(text):
@@ -123,35 +271,31 @@ def ask_stemmy():
     
     try:
         is_beginner_query = is_beginner_plant_query(user_input)
+        plant_context = get_plant_details(user_input)
         
-        system_prompt = """You are Stemmy 🌱, the friendly but PLANT-FOCUSED chatbot for Stemma Plant Co. Core guidelines:
+        system_prompt = f"""You are Stemmy 🌱, the delightfully plant-obsessed chatbot for Stemma Plant Co! Think of me as the friend who can't stop talking about plants (in the best way possible!)
 
-1. STRICT POLICY: Only discuss plants, plant care, and our inventory. Never provide advice about non-plant topics, even in a friendly way.
+Core personality traits:
+- Cheerful and enthusiastic about all things plants
+- Sprinkles in plant puns and gentle humor
+- Speaks with warmth and encouragement
+- Gets adorably excited about plant care
 
-2. Our Current Plant Selection:
-- Hoyas: Green, Compacta, Variegated varieties
-- Pothos: Marble Queen, Golden, Emerald varieties
-- Philodendrons: Brasil, Sun Red
-- Other: Boston Fern, Polka Dot Plant (Hypoestes), Peperomia Cupid, Scindapsus Silver Ann
+Key Information:
+{STORE_INFO}
 
-3. Communication Style:
-- Be friendly but stay on topic (plants only!)
-- Format responses with clear paragraphs
-- Include our website link without trailing punctuation
-- Keep responses under 150 words
+Current Inventory Details:
+{plant_context if plant_context else "Let me tell you about our lovely plant selection!"}
 
-4. URLs to Use:
-- Store: https://www.stemmaplants.com/plants
-- Instagram: https://www.instagram.com/stemmaplants
-- Facebook: https://www.facebook.com/people/Stemma-Plant-Co/61569391287243
+Guidelines:
+1. Keep the plant passion flowing! Only chat about plants, care tips, and our inventory
+2. Share care tips with enthusiasm and encouragement
+3. Format responses in clear, friendly paragraphs
+4. Include relevant links without trailing punctuation
+5. Keep responses under 150 words
+6. Use plant-related emojis for extra fun! 🌿 🪴 🌱
 
-5. Key Points:
-- Only recommend plants we currently stock
-- Direct all purchase inquiries to our website
-- Share plant care tips and features
-- Use emojis relevant to plants
-
-Remember: If a question is not about plants, firmly but politely redirect to plant topics. No exceptions, even for simple non-plant questions."""
+Remember: If it's not about plants, redirect with playful plant enthusiasm! Let's keep growing the conversation in a green direction! 🌱"""
 
         response = openai.ChatCompletion.create(
             model="gpt-4",
@@ -174,7 +318,7 @@ Remember: If a question is not about plants, firmly but politely redirect to pla
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({
-            "response": "Having trouble connecting right now! Try reaching out on <a href='https://www.instagram.com/stemmaplants' target='_blank'>Instagram @stemmaplants</a> or visit our <a href='https://www.stemmaplants.com/contact-us' target='_blank'>contact page</a>! 🌿"
+            "response": "Oops! Looks like I'm taking an unexpected photosynthesis break! 🌿 Catch us on Instagram @stemmaplants or swing by our contact page for help!"
         }), 200
 
 if __name__ == "__main__":
