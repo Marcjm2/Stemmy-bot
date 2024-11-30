@@ -23,124 +23,124 @@ openai.organization = os.getenv("OPENAI_ORGANIZATION")
 # Add plant data
 plants = [
     {
-        "name": "Hoya Green",
-        "price": 34.00,
-        "size": "6-inch pot",
-        "light": "Bright, indirect light",
-        "water": "Allow soil to dry between waterings",
-        "description": "A hardy and low-maintenance plant with waxy green leaves",
-        "care": "Water when the top inch of soil feels dry. Avoid overwatering",
-        "stock": "In stock"
+        'name': 'Hoya Green',
+        'price': 34.00,
+        'size': '6-inch pot',
+        'light': 'Bright, indirect light',
+        'water': 'Allow soil to dry between waterings',
+        'description': 'A hardy and low-maintenance plant with waxy green leaves',
+        'care': 'Water when the top inch of soil feels dry. Avoid overwatering',
+        'stock': 'In stock'
     },
     {
-        "name": "Hoya Compacta",
-        "price": 34.00,
-        "size": "6-inch pot",
-        "light": "Bright, indirect light",
-        "water": "Let the soil dry out slightly between waterings",
-        "description": "Also known as Hindu Rope, this unique Hoya features twisted, curling leaves",
-        "care": "Keep in a warm, humid spot. Mist occasionally to maintain humidity",
-        "stock": "In stock"
+        'name': 'Hoya Compacta',
+        'price': 34.00,
+        'size': '6-inch pot',
+        'light': 'Bright, indirect light',
+        'water': 'Let the soil dry out slightly between waterings',
+        'description': 'Also known as Hindu Rope, this unique Hoya features twisted, curling leaves',
+        'care': 'Keep in a warm, humid spot. Mist occasionally to maintain humidity',
+        'stock': 'In stock'
     },
     {
-        "name": "Boston Fern HB",
-        "price": 39.00,
-        "size": "10-inch hanging basket (Plastic Hanger)",
-        "light": "Bright, indirect to medium light",
-        "water": "Keep soil consistently moist but not soggy",
-        "description": "A lush, classic fern perfect for adding greenery to any space",
-        "care": "Mist regularly to maintain humidity. Avoid direct sunlight",
-        "stock": "In stock"
+        'name': 'Boston Fern HB',
+        'price': 39.00,
+        'size': '10-inch hanging basket (Plastic Hanger)',
+        'light': 'Bright, indirect to medium light',
+        'water': 'Keep soil consistently moist but not soggy',
+        'description': 'A lush, classic fern perfect for adding greenery to any space',
+        'care': 'Mist regularly to maintain humidity. Avoid direct sunlight',
+        'stock': 'In stock'
     },
     {
-        "name": "Pothos Marble Queen HB",
-        "price": 36.00,
-        "size": "8-inch hanging basket",
-        "light": "Low to medium, indirect light",
-        "water": "Allow the top inch of soil to dry out between waterings",
-        "description": "A striking plant with creamy white and green variegated leaves",
-        "care": "Thrives in low-maintenance conditions. Wipe leaves to remove dust",
-        "stock": "In stock"
+        'name': 'Pothos Marble Queen HB',
+        'price': 36.00,
+        'size': '8-inch hanging basket',
+        'light': 'Low to medium, indirect light',
+        'water': 'Allow the top inch of soil to dry out between waterings',
+        'description': 'A striking plant with creamy white and green variegated leaves',
+        'care': 'Thrives in low-maintenance conditions. Wipe leaves to remove dust',
+        'stock': 'In stock'
     },
     {
-        "name": "Hypoestes (Polka Dot Plant) 3 Plant Bundle",
-        "price": 24.00,
-        "size": "4-inch pot",
-        "light": "Bright, indirect light",
-        "water": "Keep soil evenly moist, but avoid waterlogging",
-        "description": "A cheerful bundle of Polka Dot Plants with speckled leaves in various colors",
-        "care": "Pinch off growth to encourage bushiness. Prefers humid environments",
-        "stock": "In stock"
+        'name': 'Hypoestes (Polka Dot Plant) 3 Plant Bundle',
+        'price': 24.00,
+        'size': '4-inch pot',
+        'light': 'Bright, indirect light',
+        'water': 'Keep soil evenly moist, but avoid waterlogging',
+        'description': 'A cheerful bundle of Polka Dot Plants with speckled leaves in various colors',
+        'care': 'Pinch off growth to encourage bushiness. Prefers humid environments',
+        'stock': 'In stock'
     },
     {
-        "name": "Hoya Green Variegated",
-        "price": 34.00,
-        "size": "6-inch pot",
-        "light": "Bright, indirect light",
-        "water": "Let soil dry slightly between waterings",
-        "description": "A variegated version of the classic Hoya with creamy accents on its leaves",
-        "care": "Provide good drainage and avoid standing water. Mist for humidity",
-        "stock": "In stock"
+        'name': 'Hoya Green Variegated',
+        'price': 34.00,
+        'size': '6-inch pot',
+        'light': 'Bright, indirect light',
+        'water': 'Let soil dry slightly between waterings',
+        'description': 'A variegated version of the classic Hoya with creamy accents on its leaves',
+        'care': 'Provide good drainage and avoid standing water. Mist for humidity',
+        'stock': 'In stock'
     },
     {
-        "name": "Peperomia Cupid",
-        "price": 22.00,
-        "size": "6-inch pot",
-        "light": "Bright, indirect light",
-        "water": "Allow soil to dry out between waterings",
-        "description": "A compact plant with heart-shaped leaves edged in cream",
-        "care": "Avoid overwatering. Ideal for desktops or small spaces",
-        "stock": "In stock"
+        'name': 'Peperomia Cupid',
+        'price': 22.00,
+        'size': '6-inch pot',
+        'light': 'Bright, indirect light',
+        'water': 'Allow soil to dry out between waterings',
+        'description': 'A compact plant with heart-shaped leaves edged in cream',
+        'care': 'Avoid overwatering. Ideal for desktops or small spaces',
+        'stock': 'In stock'
     },
     {
-        "name": "Philodendron Brasil",
-        "price": 22.00,
-        "size": "6-inch pot",
-        "light": "Medium to bright, indirect light",
-        "water": "Allow soil to dry partially between waterings",
-        "description": "A vibrant plant with striking yellow and green variegated leaves",
-        "care": "Easy to care for and great for beginners. Trim as needed",
-        "stock": "In stock"
+        'name': 'Philodendron Brasil',
+        'price': 22.00,
+        'size': '6-inch pot',
+        'light': 'Medium to bright, indirect light',
+        'water': 'Allow soil to dry partially between waterings',
+        'description': 'A vibrant plant with striking yellow and green variegated leaves',
+        'care': 'Easy to care for and great for beginners. Trim as needed',
+        'stock': 'In stock'
     },
     {
-        "name": "Philodendron Sun Red",
-        "price": 25.00,
-        "size": "6-inch pot",
-        "light": "Bright, indirect light",
-        "water": "Water when the top inch of soil feels dry",
-        "description": "A unique philodendron with rich red tones and a pop of color",
-        "care": "Wipe leaves occasionally to keep them clean and glossy",
-        "stock": "In stock"
+        'name': 'Philodendron Sun Red',
+        'price': 25.00,
+        'size': '6-inch pot',
+        'light': 'Bright, indirect light',
+        'water': 'Water when the top inch of soil feels dry',
+        'description': 'A unique philodendron with rich red tones and a pop of color',
+        'care': 'Wipe leaves occasionally to keep them clean and glossy',
+        'stock': 'In stock'
     },
     {
-        "name": "Pothos Emerald",
-        "price": 20.00,
-        "size": "6-inch pot",
-        "light": "Low to medium, indirect light",
-        "water": "Let the soil dry out slightly between waterings",
-        "description": "A hardy Pothos variety with deep green leaves",
-        "care": "Very low-maintenance. Perfect for beginners or low-light spaces",
-        "stock": "In stock"
+        'name': 'Pothos Emerald',
+        'price': 20.00,
+        'size': '6-inch pot',
+        'light': 'Low to medium, indirect light',
+        'water': 'Let the soil dry out slightly between waterings',
+        'description': 'A hardy Pothos variety with deep green leaves',
+        'care': 'Very low-maintenance. Perfect for beginners or low-light spaces',
+        'stock': 'In stock'
     },
     {
-        "name": "Scindapsus Silver Ann",
-        "price": 29.00,
-        "size": "6-inch pot",
-        "light": "Bright, indirect light",
-        "water": "Allow the top inch of soil to dry between waterings",
-        "description": "A beautiful trailing plant with silvery, velvety leaves",
-        "care": "Provide good drainage and rotate periodically for even growth",
-        "stock": "In stock"
+        'name': 'Scindapsus Silver Ann',
+        'price': 29.00,
+        'size': '6-inch pot',
+        'light': 'Bright, indirect light',
+        'water': 'Allow the top inch of soil to dry between waterings',
+        'description': 'A beautiful trailing plant with silvery, velvety leaves',
+        'care': 'Provide good drainage and rotate periodically for even growth',
+        'stock': 'In stock'
     },
     {
-        "name": "Pothos Golden HB",
-        "price": 36.00,
-        "size": "8-inch hanging basket",
-        "light": "Low to medium, indirect light",
-        "water": "Allow the top inch of soil to dry out between waterings",
-        "description": "A classic golden Pothos with striking yellow-green variegated leaves",
-        "care": "Thrives in a variety of conditions. Easy to propagate",
-        "stock": "In stock"
+        'name': 'Pothos Golden HB',
+        'price': 36.00,
+        'size': '8-inch hanging basket',
+        'light': 'Low to medium, indirect light',
+        'water': 'Allow the top inch of soil to dry out between waterings',
+        'description': 'A classic golden Pothos with striking yellow-green variegated leaves',
+        'care': 'Thrives in a variety of conditions. Easy to propagate',
+        'stock': 'In stock'
     }
 ]
 
@@ -159,12 +159,12 @@ def get_plant_details(query):
     relevant_info = []
     
     for plant in plants:
-        plant_info = f"{plant[\"name\"]}: ${plant[\"price\"]} - {plant[\"description\"]} ({plant[\"size\"]})"
-        if any(keyword in query for keyword in plant[\"name\"].lower().split()):
+        plant_info = f"{plant['name']}: ${plant['price']} - {plant['description']} ({plant['size']})"
+        if any(keyword in query for keyword in plant['name'].lower().split()):
             relevant_info.append(plant_info)
-            relevant_info.append(f"Care: {plant[\"care\"]}")
-            relevant_info.append(f"Light: {plant[\"light\"]}")
-            relevant_info.append(f"Water: {plant[\"water\"]}")
+            relevant_info.append(f"Care: {plant['care']}")
+            relevant_info.append(f"Light: {plant['light']}")
+            relevant_info.append(f"Water: {plant['water']}")
     
     return "\n".join(relevant_info) if relevant_info else ""
 
