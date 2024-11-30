@@ -58,7 +58,7 @@ def format_response(text):
             
         if ": " in para and "http" not in para:
             parts = para.split(": ")
-            para = f"{parts[0]}: \n{:.join(parts[1:])}"
+            para = f"{parts[0]}: \n{.join(parts[1:])}"
             
         formatted_paragraphs.append(para)
     
