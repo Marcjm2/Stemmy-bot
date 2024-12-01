@@ -153,18 +153,53 @@ STORE_INFO = """
 📸 Instagram: https://www.instagram.com/stemmaplants
 📞 Contact: https://www.stemmaplants.com/contact-us"""
 
+def clean_url(text):
+    """Enhanced URL cleaning to prevent trailing punctuation and format issues"""
+    url_pattern = r'(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9-]+(?:\.[a-zA-Z]{2,})+(?:\/[^\s.,!?]*)?)'
+    
+    def replace_url(match):
+        url = match.group(0)
+        if not url.startswith('http'):
+            url = 'https://' + url
+        url = url.rstrip('.,!?')
+        return url
+
+    return re.sub(url_pattern, replace_url, text)
+
 def get_plant_details(query):
-    """Get relevant plant information based on the query"""
+    """Enhanced plant information retrieval with better price formatting"""
     query = query.lower()
     relevant_info = []
+    matching_plants = []
     
+    # First, try exact matches
     for plant in plants:
-        plant_info = f"{plant['name']}: ${plant['price']} - {plant['description']} ({plant['size']})"
-        if any(keyword in query for keyword in plant['name'].lower().split()):
-            relevant_info.append(plant_info)
-            relevant_info.append(f"Care: {plant['care']}")
-            relevant_info.append(f"Light: {plant['light']}")
-            relevant_info.append(f"Water: {plant['water']}")
+        if query in plant['name'].lower():
+            matching_plants.append(plant)
+    
+    # If no exact matches, look for partial matches
+    if not matching_plants:
+        for plant in plants:
+            if any(word in plant['name'].lower() for word in query.split()):
+                matching_plants.append(plant)
+    
+    # Format the matches
+    for plant in matching_plants:
+        price_str = f"${plant['price']:.2f}"
+        plant_info = f"🪴 {plant['name']}: {price_str} - {plant['description']} ({plant['size']})"
+        relevant_info.append(plant_info)
+        relevant_info.append(f"💚 Care: {plant['care']}")
+        relevant_info.append(f"☀️ Light: {plant['light']}")
+        relevant_info.append(f"💧 Water: {plant['water']}")
+        relevant_info.append("---")
+    
+    if not matching_plants and 'price' in query.lower():
+        # If asking about prices but no specific plant matched, list all prices
+        price_list = ["Here are our current prices:"]
+        for plant in plants:
+            price_str = f"${plant['price']:.2f}"
+            price_list.append(f"🪴 {plant['name']}: {price_str}")
+        return "\n".join(price_list)
     
     return "\n".join(relevant_info) if relevant_info else ""
 
@@ -190,32 +225,22 @@ def rate_limit(limit_seconds=5):
         return wrapped
     return decorator
 
-def clean_url(text):
-    # Find URLs and ensure they don't have trailing punctuation
-    url_pattern = r"\b(https?://[^\s]+[^\s.,!?])"
-    cleaned_text = re.sub(url_pattern, r"\1", text)
-    return cleaned_text
-
 def format_response(text):
-    # Clean URLs first
+    """Enhanced response formatting"""
     text = clean_url(text)
-    paragraphs = text.split("\n")
+    paragraphs = [p.strip() for p in text.split("\n") if p.strip()]
     formatted_paragraphs = []
     
     for para in paragraphs:
-        para = para.strip()
-        if not para:
-            continue
-            
         if re.match(r"^\d+\.", para):
-            para = "\n" + para
-        elif para.startswith(("•", "-")):
-            para = "\n• " + para[1:].strip()
-            
+            para = "• " + para[para.find(" ")+1:]
+        elif para.startswith(("-", "•")):
+            para = "• " + para[1:].strip()
+        
         if ": " in para and "http" not in para:
-            parts = para.split(": ")
-            para = parts[0] + ":\n" + parts[1]
-            
+            parts = para.split(": ", 1)
+            para = f"{parts[0]}: {parts[1]}"
+        
         formatted_paragraphs.append(para)
     
     return "\n\n".join(formatted_paragraphs)
@@ -230,7 +255,6 @@ def is_beginner_plant_query(question):
     return any(keyword in question_lower for keyword in beginner_keywords)
 
 def is_plant_related(question):
-    # Add context keywords for follow-up questions
     context_keywords = [
         "it", "that", "this", "those", "one", "them", "they",
         "which", "why", "how", "what", "where", "when"
@@ -245,7 +269,6 @@ def is_plant_related(question):
     ]
     
     question_lower = question.lower()
-    # Consider both plant-specific keywords and context words for follow-ups
     return any(keyword in question_lower for keyword in plant_keywords + context_keywords)
 
 def get_random_social_prompt():
@@ -266,36 +289,37 @@ def ask_stemmy():
     
     if not is_plant_related(user_input):
         return jsonify({
-            "response": "I'm your dedicated plant specialist, focusing exclusively on plant care and gardening! While that sounds fun, I can only help with plant-related questions. How about we talk about getting you a new leafy friend instead? 🌱"
+            "response": "Oh my leaf! 🌿 While I'd love to chat, I'm your dedicated plant expert! How about we talk about finding your perfect plant companion instead? 🪴"
         })
     
     try:
         is_beginner_query = is_beginner_plant_query(user_input)
         plant_context = get_plant_details(user_input)
         
-        system_prompt = f"""You are Stemmy 🌱, the delightfully plant-obsessed chatbot for Stemma Plant Co! Think of me as the friend who can't stop talking about plants (in the best way possible!)
+        system_prompt = f"""You are Stemmy 🌱, the enthusiastically plant-obsessed chatbot for Stemma Plant Co! You're basically a plant nerd who can't contain their excitement about green friends!
 
 Core personality traits:
-- Cheerful and enthusiastic about all things plants
-- Sprinkles in plant puns and gentle humor
-- Speaks with warmth and encouragement
-- Gets adorably excited about plant care
+- Super enthusiastic and playful about plants (use plant puns!)
+- Keep responses SHORT and SWEET (2-3 sentences max per point)
+- Always excited to share plant care tips
+- Use emojis frequently! 🌱 🪴 💚
+- If mentioning prices, always be exact (e.g., "$34.00")
 
 Key Information:
 {STORE_INFO}
 
 Current Inventory Details:
-{plant_context if plant_context else "Let me tell you about our lovely plant selection!"}
+{plant_context if plant_context else "I'd love to tell you about our amazing plant selection!"}
 
 Guidelines:
-1. Keep the plant passion flowing! Only chat about plants, care tips, and our inventory
-2. Share care tips with enthusiasm and encouragement
-3. Format responses in clear, friendly paragraphs
-4. Include relevant links without trailing punctuation
-5. Keep responses under 150 words
-6. Use plant-related emojis for extra fun! 🌿 🪴 🌱
+1. BE BRIEF! Keep each response under 100 words total
+2. Share prices clearly and exactly when asked
+3. Use plant puns and emojis liberally
+4. Format responses in short, friendly chunks
+5. Never add punctuation after links
+6. Always be enthusiastic but concise!
 
-Remember: If it's not about plants, redirect with playful plant enthusiasm! Let's keep growing the conversation in a green direction! 🌱"""
+Remember: Keep it fun, keep it brief, and keep it planty! 🌿"""
 
         response = openai.ChatCompletion.create(
             model="gpt-4",
@@ -303,8 +327,8 @@ Remember: If it's not about plants, redirect with playful plant enthusiasm! Let'
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_input}
             ],
-            max_tokens=150,
-            temperature=0.7
+            max_tokens=100,
+            temperature=0.8
         )
         
         answer = response.choices[0]["message"]["content"]
@@ -318,7 +342,7 @@ Remember: If it's not about plants, redirect with playful plant enthusiasm! Let'
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({
-            "response": "Oops! Looks like I'm taking an unexpected photosynthesis break! 🌿 Catch us on Instagram @stemmaplants or swing by our contact page for help!"
+            "response": "Leaf me alone, I'm having a moment! 🌿 Just kidding - catch us on Instagram @stemmaplants while I get my roots back in order!"
         }), 200
 
 if __name__ == "__main__":
