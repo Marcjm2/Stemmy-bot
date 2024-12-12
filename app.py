@@ -279,6 +279,9 @@ def get_random_social_prompt():
     ]
     return random.choice(prompts)
 
+@app.route("/test", methods=["GET"])
+def test():
+    return jsonify({"message": "Flask is working!"})
 @app.route("/ask_stemmy", methods=["POST"])
 @rate_limit(5)
 def ask_stemmy():
